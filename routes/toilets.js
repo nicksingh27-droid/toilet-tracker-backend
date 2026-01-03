@@ -40,36 +40,6 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Lat/long must be numbers' });
     }
 
-    // Check for duplicate nearby
-    const existing = await Toilet.findOne({
-      user: req.user.id,
-      location: {
-        $near: {
-          $geometry: { type: 'Point', coordinates: [lon, lat] },
-          $maxDistance: 20
-        }
-      }
-    });
-
-    if (existing) {
-      return res.status(400).json({ message: 'You already logged a toilet here!' });
-    }
-
-    const toilet = await Toilet.create({
-      user: req.user.id,
-      name,
-      location: { type: 'Point', coordinates: [lon, lat] },
-      address: address || '',
-    });
-
-    console.log('✅ Toilet saved:', toilet._id);
-    res.status(201).json({ message: 'Toilet logged! 🚽', toilet });
-
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
 
 // Get user's progress
 router.get('/my-progress', auth, async (req, res) => {
