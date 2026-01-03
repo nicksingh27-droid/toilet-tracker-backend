@@ -1,11 +1,9 @@
-// routes/auth.js - FULLY WORKING AUTH ROUTES
-
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('../../models/User');
+const User = require('../models/User');
 
-const router = express.Router();  // ← THIS WAS MISSING!
+const router = express.Router();
 
 // Sign Up
 router.post('/signup', async (req, res) => {
