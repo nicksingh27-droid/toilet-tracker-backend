@@ -3,6 +3,15 @@
 const mongoose = require('mongoose');
 
 const toiletSchema = new mongoose.Schema({
+  // ... existing fields
+  isGoldenBowl: {
+    type: Boolean,
+    default: false
+  },
+  // ... rest
+});
+
+const toiletSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
