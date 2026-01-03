@@ -1,15 +1,4 @@
-// models/Toilet.js - Fixed version (no compound unique index)
-
 const mongoose = require('mongoose');
-
-const toiletSchema = new mongoose.Schema({
-  // ... existing fields
-  isGoldenBowl: {
-    type: Boolean,
-    default: false
-  },
-  // ... rest
-});
 
 const toiletSchema = new mongoose.Schema({
   user: {
@@ -29,7 +18,7 @@ const toiletSchema = new mongoose.Schema({
       default: 'Point',
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number],
       required: true,
     },
   },
@@ -41,9 +30,12 @@ const toiletSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isGoldenBowl: {
+    type: Boolean,
+    default: false
+  },
 });
 
-// Only one index: for fast nearby checks
 toiletSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Toilet', toiletSchema);
