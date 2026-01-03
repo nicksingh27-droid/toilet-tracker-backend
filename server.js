@@ -7,23 +7,37 @@ dotenv.config();
 
 const app = express();
 
-// Proper CORS configuration
+// CORS configuration
 app.use(cors({
-  origin: ['https://theboomboom400.netlify.app', 'http://localhost:3000'],
+  origin: function(origin, callback) {
+    const allowedOrigins = ['https://theboomboom400.netlify.app', 'http://localhost:3000'];
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all for debugging
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
-
-// Handle preflight requests
-app.options('*', cors());
 
 app.use(express.json());
 
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  
+  // Log response
+  const oldSend = res.send;
+  res.send = function(data) {
+    console.log(`Response sent for ${req.method} ${req.path}: ${res.statusCode}`);
+    oldSend.apply(res, arguments);
+  };
+  
   next();
 });
 
