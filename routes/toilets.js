@@ -64,7 +64,7 @@ router.get('/my-progress', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
-};
+});
 
 // Get all my toilets
 router.get('/', auth, async (req, res) => {
@@ -74,7 +74,7 @@ router.get('/', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
-};
+});
 
 // Toggle Golden Bowl
 router.patch('/:id/toggle-golden', auth, async (req, res) => {
@@ -101,7 +101,7 @@ router.patch('/:id/toggle-golden', auth, async (req, res) => {
     console.error('Golden Bowl error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-};
+});
 
 // Leaderboard
 router.get('/leaderboard', async (req, res) => {
