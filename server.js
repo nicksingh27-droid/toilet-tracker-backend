@@ -6,7 +6,10 @@ const cors = require('cors');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*'  // Allows any origin (fine for public app like this)
+  // OR for more security: origin: 'https://theboomboom400.netlify.app'
+}));
 app.use(express.json());
 
 // Routes
