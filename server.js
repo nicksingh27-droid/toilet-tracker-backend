@@ -7,12 +7,25 @@ dotenv.config();
 
 const app = express();
 
-// Allow requests from your Netlify frontend (and any origin)
+// Proper CORS configuration
 app.use(cors({
-  origin: '*'
+  origin: ['https://theboomboom400.netlify.app', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Handle preflight requests
+app.options('*', cors());
+
 app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // Import routes
 const authRoutes = require('./routes/auth');
