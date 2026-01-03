@@ -48,7 +48,7 @@ router.post('/', auth, async (req, res) => {
     console.error('Error adding toilet:', error);
     res.status(500).json({ message: 'Server error' });
   }
-};
+});
 
 // My progress
 router.get('/my-progress', auth, async (req, res) => {
