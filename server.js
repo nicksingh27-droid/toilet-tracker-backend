@@ -7,9 +7,9 @@ dotenv.config();
 
 const app = express();
 
-// CORS - allow your Netlify frontend
+// CORS for Netlify frontend
 app.use(cors({
-  origin: '*'  // or specifically 'https://theboomboom400.netlify.app'
+  origin: '*'
 }));
 
 app.use(express.json());
@@ -21,15 +21,15 @@ const toiletRoutes = require('./routes/toilets');
 app.use('/api/auth', authRoutes);
 app.use('/api/toilets', toiletRoutes);
 
-// Test route
+// Root route
 app.get('/', (req, res) => {
   res.send('🚽 Toilet Tracker backend is running! Welcome!');
 });
 
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas!'))
-  .catch((err) => console.log('❌ MongoDB connection error:', err));
+  .catch(err => console.log('❌ MongoDB connection error:', err));
 
 // Port for Render
 const PORT = process.env.PORT || 5000;
