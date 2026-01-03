@@ -1,13 +1,11 @@
-// routes/toilets.js - FULLY WORKING VERSION
-
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const Toilet = require('../models/Toilet');
 const User = require('../models/User');
 
-const router = express.Router();  // ← THIS LINE WAS MISSING!
+const router = express.Router();
 
-// Middleware to protect routes
+// Auth middleware
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -21,12 +19,9 @@ const auth = async (req, res, next) => {
   }
 };
 
-// Add a new toilet
+// Add new toilet
 router.post('/', auth, async (req, res) => {
   try {
-    console.log('🧑 User:', req.user.id);
-    console.log('📩 Body:', req.body);
-
     const { name, latitude, longitude, address } = req.body;
 
     if (!name || latitude === undefined || longitude === undefined) {
@@ -40,8 +35,22 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Lat/long must be numbers' });
     }
 
+    const toilet = await Toilet.create({
+      user: req.user.id,
+      name,
+      location: { type: 'Point', coordinates: [lon, lat] },
+      address: address || '',
+      isGoldenBowl: false
+    });
 
-// Get user's progress
+    res.status(201).json({ message: 'Toilet logged! 🚽', toilet });
+  } catch (error) {
+    console.error('Error adding toilet:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// My progress
 router.get('/my-progress', auth, async (req, res) => {
   try {
     const total = await Toilet.countDocuments({ user: req.user.id });
@@ -55,9 +64,9 @@ router.get('/my-progress', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// GET ALL USER'S TOILETS (for map and list)
+// Get all my toilets
 router.get('/', auth, async (req, res) => {
   try {
     const toilets = await Toilet.find({ user: req.user.id }).sort({ visitedAt: -1 });
@@ -65,41 +74,73 @@ router.get('/', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
-});
+};
 
-// GET LEADERBOARD (public)
+// Toggle Golden Bowl
+router.patch('/:id/toggle-golden', auth, async (req, res) => {
+  try {
+    const toilet = await Toilet.findOne({ _id: req.params.id, user: req.user.id });
+    if (!toilet) {
+      return res.status(404).json({ message: 'Toilet not found or not yours' });
+    }
+
+    const goldenCount = await Toilet.countDocuments({ user: req.user.id, isGoldenBowl: true });
+
+    if (!toilet.isGoldenBowl && goldenCount >= 5) {
+      return res.status(400).json({ message: 'You can only have 5 Golden Bowl toilets!' });
+    }
+
+    toilet.isGoldenBowl = !toilet.isGoldenBowl;
+    await toilet.save();
+
+    res.json({
+      message: `Golden Bowl ${toilet.isGoldenBowl ? 'awarded! 🏆' : 'removed'}`,
+      toilet
+    });
+  } catch (error) {
+    console.error('Golden Bowl error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Leaderboard
 router.get('/leaderboard', async (req, res) => {
   try {
-    const users = await User.aggregate([
+    const leaderboard = await User.aggregate([
       {
         $lookup: {
-          from: 'toilets',  // ← MongoDB collection name (lowercase)
+          from: 'toilets',
           localField: '_id',
           foreignField: 'user',
-          as: 'toiletsArray'
+          as: 'userToilets'
         }
       },
       {
         $addFields: {
-          total: { $size: { $ifNull: ['$toiletsArray', []] } }
+          totalToilets: { $size: { $ifNull: ['$userToilets', []] } }
         }
       },
       {
         $project: {
           email: 1,
-          total: 1,
-          _id: 0  // hide full ID for privacy
+          totalToilets: 1
         }
       },
-      { $sort: { total: -1 } },
-      { $limit: 50 }  // optional: top 50 only
+      {
+        $sort: { totalToilets: -1 }
+      },
+      { $limit: 50 }
     ]);
 
-    res.json(users);
+    const formatted = leaderboard.map(entry => ({
+      email: entry.email,
+      total: entry.totalToilets
+    }));
+
+    res.json(formatted);
   } catch (error) {
-    console.error('Leaderboard error:', error.message);  // ← This will now show in terminal
-    console.error(error.stack);
-    res.status(500).json({ message: 'Leaderboard failed', error: error.message });
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ message: 'Failed to load leaderboard' });
   }
 });
 
