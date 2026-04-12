@@ -99,7 +99,7 @@ router.get('/all', async (req, res) => {
       visitedAt: toilet.visitedAt,
       isGoldenBowl: toilet.isGoldenBowl,
       userName: toilet.user.email.split('@')[0],
-      userId: toilet.user._id
+      userId: toilet.user._id.toString()
     }));
 
     res.json(formatted);
