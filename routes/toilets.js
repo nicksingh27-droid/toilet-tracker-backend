@@ -91,21 +91,23 @@ router.get('/all', auth, async (req, res) => {
       .populate('user', 'email')
       .sort({ visitedAt: -1 });
     
-    const formatted = toilets.map(toilet => ({
-      _id: toilet._id,
-      name: toilet.name,
-      location: toilet.location,
-      address: toilet.address,
-      visitedAt: toilet.visitedAt,
-      isGoldenBowl: toilet.isGoldenBowl,
-      userName: toilet.user.email.split('@')[0],
-      userId: toilet.user._id.toString()
-    }));
+    const formatted = toilets
+      .filter(toilet => toilet.user) // Filter out toilets with deleted users
+      .map(toilet => ({
+        _id: toilet._id,
+        name: toilet.name,
+        location: toilet.location,
+        address: toilet.address,
+        visitedAt: toilet.visitedAt,
+        isGoldenBowl: toilet.isGoldenBowl,
+        userName: toilet.user.email.split('@')[0],
+        userId: toilet.user._id.toString()
+      }));
 
     res.json(formatted);
   } catch (error) {
     console.error('Get all toilets error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
