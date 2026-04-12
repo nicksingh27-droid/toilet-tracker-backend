@@ -85,7 +85,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 // Get all toilets from all users (for the map)
-router.get('/all', async (req, res) => {
+router.get('/all', auth, async (req, res) => {
   try {
     const toilets = await Toilet.find({})
       .populate('user', 'email')
