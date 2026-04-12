@@ -84,6 +84,30 @@ router.get('/', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// Get all toilets from all users (for the map)
+router.get('/all', async (req, res) => {
+  try {
+    const toilets = await Toilet.find({})
+      .populate('user', 'email')
+      .sort({ visitedAt: -1 });
+    
+    const formatted = toilets.map(toilet => ({
+      _id: toilet._id,
+      name: toilet.name,
+      location: toilet.location,
+      address: toilet.address,
+      visitedAt: toilet.visitedAt,
+      isGoldenBowl: toilet.isGoldenBowl,
+      userName: toilet.user.email.split('@')[0],
+      userId: toilet.user._id
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error('Get all toilets error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // Toggle Golden Bowl
 router.patch('/:id/toggle-golden', auth, async (req, res) => {
